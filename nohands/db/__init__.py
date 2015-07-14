@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+# -*- coding: utf8 -*-
+
+# Copyright (C) 2015 Garden City Group, LLC
+#
+# ga_gcginc comes with ABSOLUTELY NO WARRANTY.  This is free software, and you
+# are welcome to redistribute it under certain conditions.  See the MIT Licence
+# for details.
+
+"""
+nohands.db:
+    This module provides an interface to a database that contains mostly static configuration info.
+"""
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
+session_factory = sessionmaker()
+
+# ################################################################################
+
+Session = scoped_session(session_factory)
+Base = declarative_base()
+
+from nohands.db.models import *
+
+with open('../cx.txt') as fd:
+    cx = fd.read()
+
+# Engine = create_engine('postgresql+psycopg2://nohands:*****@localhost/nohands'
+Engine = create_engine(cx
+                       # , echo=True
+                       )
+
+Session.configure(bind=Engine)
+Base.metadata.create_all(Engine)
+
+# vim:fileencoding=utf-8

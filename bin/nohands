@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+# -*- coding: utf8 -*-
+
+# Copyright (C) 2015 Garden City Group, LLC
+#
+# ga_gcginc comes with ABSOLUTELY NO WARRANTY.  This is free software, and you
+# are welcome to redistribute it under certain conditions.  See the MIT Licence
+# for details.
+
+"""nohands -- personal financial management"""
+
+from nohands.accountant import Accountant
+
+__version__ = "0.0.0"
+__author__ = "Jesse Butcher <boweeb@gmail.com>"
+__license__ = "MIT"
+
+
+def main():
+    a = Accountant()
+
+    a.helloworld()
+
+
+if __name__ == '__main__':
+    main()
+
+
+# vim:fileencoding=utf-8

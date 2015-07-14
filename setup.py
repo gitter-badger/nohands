@@ -16,6 +16,8 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'docopt',
+    'sqlalchemy',
+    'inflect',
 ]
 
 test_requirements = [
