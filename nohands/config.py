@@ -58,12 +58,18 @@ class GlobalConfig:
             print("Config file missing. Initializing new, blank one.")
             with open(self.config_file, "w") as fp:
                 fp.write("[Settings]\n" +
-                         "db_cx = postgresql+psycopg2://nohands:***@localhost/nohands\n" +
                          "waa_contrib = 1.2\n" +
                          "savings_pct = 14\n" +
                          "giving_goal_pct = 10\n" +
                          "giving_holdback_pct = 10\n" +
                          "fst_term = Monthly\n" +
+                         "\n"
+                         "[Database]\n" +
+                         "driver = postgresql+psycopg2\n" +
+                         "username = nohands\n" +
+                         "password = XXXXXX\n" +
+                         "host = localhost\n" +
+                         "db_name = nohands\n" +
                          "\n"
                          )
 
@@ -73,12 +79,18 @@ class GlobalConfig:
         # CONFIG FILE:
         # -------------------
         # [Settings]
-        self.db_cx = self.config.get('Settings', 'db_cx')
         self.waa_contrib = self.config.getfloat('Settings', 'waa_contrib')
         self.savings_pct = self.config.getint('Settings', 'savings_pct') / 100
         self.giving_goal_pct = self.config.getint('Settings', 'giving_goal_pct') / 100
         self.giving_holdback_pct = self.config.getint('Settings', 'giving_holdback_pct') / 100
         self.fst_term = self.config.get('Settings', 'fst_term')
+        # [Database]
+        driver = self.config.get('Database', 'driver')
+        username = self.config.get('Database', 'username')
+        password = self.config.get('Database', 'password')
+        host = self.config.get('Database', 'host')
+        db_name = self.config.get('Database', 'db_name')
+        self.db_cx = driver + "://" + username + ":" + password + "@" + host + "/" + db_name
 
         # -------------------
         # CONSTANTS:
