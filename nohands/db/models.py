@@ -124,13 +124,14 @@ class Expense(Base):
     def annual_amount(self):
         return self.amount * self.term.occurrence_year
 
+    # TODO: Find a way to make this work.
     # # noinspection PyMethodParameters
     # @annual_amount.expression
     # def annual_amount(cls):
     #     return select([sum(cls.amount * Term.occurrence_year)]).\
     #         where(cls.term_id == Term.id).\
     #         label('annual_amount')
-    #
+
     @hybrid_property
     def monthly_amount(self):
         return self.annual_amount / C.MPY
@@ -154,6 +155,14 @@ class Ministry(Base):
     amount = Column(Integer)
 
     term = relationship('Term', backref=p('ministry'))
+
+    @hybrid_property
+    def annual_amount(self):
+        return self.amount * self.term.occurrence_year
+
+    @hybrid_property
+    def monthly_amount(self):
+        return self.annual_amount / C.MPY
 
     # Pretty print
     def __str__(self):

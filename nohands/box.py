@@ -13,7 +13,8 @@ nohands.box
 """
 
 
-CM = u'\u2713'  # Check mark
+CM = u'\u2713'  # [✓] Check mark
+XM = u'\u2717'  # [✗] X mark
 
 # Unicode characters:
 BB = u'\u2610'  # Ballot box

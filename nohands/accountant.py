@@ -45,6 +45,18 @@ class Accountant(object):
         for e in self.expenses:
             self.total_annual_expenses += e.annual_amount
 
+        self.total_gross_annual = 0
+        for e in self.earners:
+            self.total_gross_annual += e.gross_annual
+
+        self.total_ministry_annual = 0
+        for e in self.ministries:
+            self.total_ministry_annual += e.annual_amount
+
+        self.total_ministry_monthly = 0
+        for e in self.ministries:
+            self.total_ministry_monthly += e.monthly_amount
+
     def report_earners(self):
         rows = [
             ['Name', 'Gross Annual', 'Percentage', 'Checks/Year', 'Gross Paycheck',
@@ -62,7 +74,7 @@ class Accountant(object):
                 dollars_(e.net_annual),
             ]
             rows.append(values)
-        present_table(rows)
+        present_table('Income', rows)
 
     def report_expenses(self):
         rows = [
@@ -79,8 +91,70 @@ class Accountant(object):
                 dollars_(e.annual_amount),
             ]
             rows.append(values)
-        present_table(rows)
+        present_table('Expenses', rows)
         print('Total Annual Expenses:  {}'.format(dollars_(self.total_annual_expenses)))
         print('Total Monthly Expenses:  {}'.format(dollars_(self.total_monthly_expenses)))
+
+    def report_giving(self):
+        headers = ['Name', 'Percentage', 'Term', 'Annual', 'Monthly']
+        aux_rows = [
+            headers,
+        ]
+        pct_tally = 0
+
+        # Auxiliary Ministries:
+        for m in self.ministries:
+            percentage = m.annual_amount / self.total_gross_annual
+            pct_tally += percentage
+            values = [
+                m.name,
+                percent_(percentage),
+                str(m.term.name),
+                dollars_(m.annual_amount),
+                dollars_(m.monthly_amount),
+            ]
+            aux_rows.append(values)
+        aux_totals = [
+            'Subtotals',
+            percent_(pct_tally),
+            '',
+            dollars_(self.total_ministry_annual),
+            dollars_(self.total_ministry_monthly),
+        ]
+        present_table('Auxiliary Ministries', aux_rows, aux_totals)
+
+        # FST:
+        fst_pct = C.giving_goal_pct - pct_tally
+        fst_annual = self.total_gross_annual * fst_pct
+        fst_monthly = fst_annual / C.MPY
+        fst_row = ['FST',
+                   percent_(fst_pct),
+                   C.fst_term,
+                   dollars_(fst_annual),
+                   dollars_(fst_monthly),
+                   ]
+        fst_rows = [
+            headers,
+            fst_row
+        ]
+        present_table('FST', fst_rows)
+
+        # Ministry Summary:
+        aux_totals[0] = 'Aux'
+        rows = [
+            headers,
+            aux_totals,
+            fst_row,
+        ]
+        for r in rows:
+            r.pop(2)  # Drop the "Term" column
+        grand_totals = [
+            'Total',
+            percent_(pct_tally + fst_pct),
+            dollars_(self.total_ministry_annual + fst_annual),
+            dollars_(self.total_ministry_monthly + fst_monthly),
+        ]
+        present_table('Ministry Summary', rows, grand_totals)
+
 
 # vim:fileencoding=utf-8
