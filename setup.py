@@ -18,6 +18,7 @@ requirements = [
     'docopt',
     'sqlalchemy',
     'inflect',
+    'typing',
 ]
 
 test_requirements = [

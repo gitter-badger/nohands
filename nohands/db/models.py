@@ -13,15 +13,18 @@ nohands.db.models:
 """
 
 import inflect
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import Column, ForeignKey, func, select
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, String, Boolean
 
-from nohands.db import Base
+from nohands.config import GlobalConfig
+from nohands.db import Base, Session
 
 
 __all__ = ['PayPeriod', 'Term', 'Earner', 'Expense', 'Ministry', 'CreditAccount']
 
+C = GlobalConfig()
 
 Inflector = inflect.engine()
 p = Inflector.plural
@@ -38,13 +41,10 @@ class PayPeriod(Base):
 
     # Pretty print
     def __str__(self):
-        return '<PayPeriod: "{}>"'.format(self.name)
-
-    def __unicode__(self):
-        return '<PayPeriod: "{}>"'.format(self.name)
+        return '<PayPeriod: "{}">'.format(self.name)
 
     def __repr__(self):
-        return '<PayPeriod: "{}>"'.format(self.name)
+        return '<PayPeriod: "{}">'.format(self.name)
 
 
 class Term(Base):
@@ -58,13 +58,10 @@ class Term(Base):
 
     # Pretty print
     def __str__(self):
-        return '<Term: "{}>"'.format(self.name)
-
-    def __unicode__(self):
-        return '<Term: "{}>"'.format(self.name)
+        return '<Term: "{}">'.format(self.name)
 
     def __repr__(self):
-        return '<Term: "{}>"'.format(self.name)
+        return '<Term: "{}">'.format(self.name)
 
 
 class Earner(Base):
@@ -80,15 +77,32 @@ class Earner(Base):
 
     pay_period = relationship('PayPeriod', backref=p('earner'))
 
+    @hybrid_property
+    def percentage(self):
+        my_ga = self.gross_annual or 0
+        grand_sum = func.sum(Earner.gross_annual).label('grand_sum')
+        qry = Session.query(grand_sum).one()
+        sum_ga = qry.grand_sum
+        return my_ga / sum_ga
+
+    @hybrid_property
+    def gross_paycheck(self):
+        return self.gross_annual / self.pay_period.checks_year
+
+    @hybrid_property
+    def waa_contrib(self):
+        return '<NotImplemented>'
+
+    @hybrid_property
+    def net_annual(self):
+        return self.pay_period.checks_year * self.net_paycheck
+
     # Pretty print
     def __str__(self):
-        return '<Earner: "{}>"'.format(self.name)
-
-    def __unicode__(self):
-        return '<Earner: "{}>"'.format(self.name)
+        return '<Earner: "{}">'.format(self.name)
 
     def __repr__(self):
-        return '<Earner: "{}>"'.format(self.name)
+        return '<Earner: "{}">'.format(self.name)
 
 
 class Expense(Base):
@@ -106,15 +120,27 @@ class Expense(Base):
 
     term = relationship('Term', backref=p('expense'))
 
+    @hybrid_property
+    def annual_amount(self):
+        return self.amount * self.term.occurrence_year
+
+    # # noinspection PyMethodParameters
+    # @annual_amount.expression
+    # def annual_amount(cls):
+    #     return select([sum(cls.amount * Term.occurrence_year)]).\
+    #         where(cls.term_id == Term.id).\
+    #         label('annual_amount')
+    #
+    @hybrid_property
+    def monthly_amount(self):
+        return self.annual_amount / C.MPY
+
     # Pretty print
     def __str__(self):
-        return '<Expense: "{}>"'.format(self.name)
-
-    def __unicode__(self):
-        return '<Expense: "{}>"'.format(self.name)
+        return '<Expense: "{}">'.format(self.name)
 
     def __repr__(self):
-        return '<Expense: "{}>"'.format(self.name)
+        return '<Expense: "{}">'.format(self.name)
 
 
 class Ministry(Base):
@@ -131,13 +157,10 @@ class Ministry(Base):
 
     # Pretty print
     def __str__(self):
-        return '<Ministry: "{}>"'.format(self.name)
-
-    def __unicode__(self):
-        return '<Ministry: "{}>"'.format(self.name)
+        return '<Ministry: "{}">'.format(self.name)
 
     def __repr__(self):
-        return '<Ministry: "{}>"'.format(self.name)
+        return '<Ministry: "{}">'.format(self.name)
 
 
 class CreditAccount(Base):
@@ -156,13 +179,10 @@ class CreditAccount(Base):
 
     # Pretty print
     def __str__(self):
-        return '<CreditAccount: "{}>"'.format(self.name)
-
-    def __unicode__(self):
-        return '<CreditAccount: "{}>"'.format(self.name)
+        return '<CreditAccount: "{}">'.format(self.name)
 
     def __repr__(self):
-        return '<CreditAccount: "{}>"'.format(self.name)
+        return '<CreditAccount: "{}">'.format(self.name)
 
 
 # vim:fileencoding=utf-8

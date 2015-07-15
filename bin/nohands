@@ -19,8 +19,8 @@ __license__ = "MIT"
 def main():
     a = Accountant()
 
-    a.helloworld()
-
+    a.report_earners()
+    a.report_expenses()
 
 if __name__ == '__main__':
     main()

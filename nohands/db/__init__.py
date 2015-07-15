@@ -11,11 +11,14 @@
 nohands.db:
     This module provides an interface to a database that contains mostly static configuration info.
 """
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
+from nohands.config import GlobalConfig
+
+
+C = GlobalConfig()
 session_factory = sessionmaker()
 
 # ################################################################################
@@ -25,11 +28,7 @@ Base = declarative_base()
 
 from nohands.db.models import *
 
-with open('../cx.txt') as fd:
-    cx = fd.read()
-
-# Engine = create_engine('postgresql+psycopg2://nohands:*****@localhost/nohands'
-Engine = create_engine(cx
+Engine = create_engine(C.db_cx
                        # , echo=True
                        )
 
