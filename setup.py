@@ -27,7 +27,7 @@ test_requirements = [
 
 setup(
     name='nohands',
-    version='0.0.0',
+    version='0.1.0',
     description="Personal finance management using WAA/FFG method.",
     long_description=readme + '\n\n' + history,
     author="Jesse Butcher",
