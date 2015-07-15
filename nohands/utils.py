@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-# Copyright (C) 2015 Garden City Group, LLC
+# Copyright (C) 2015 Jesse Butcher
 #
-# ga_gcginc comes with ABSOLUTELY NO WARRANTY.  This is free software, and you
+# nohands comes with ABSOLUTELY NO WARRANTY.  This is free software, and you
 # are welcome to redistribute it under certain conditions.  See the MIT Licence
 # for details.
 
