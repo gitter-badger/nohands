@@ -79,7 +79,7 @@ class GlobalConfig:
         # CONFIG FILE:
         # -------------------
         # [Settings]
-        self.waa_contrib = self.config.getfloat('Settings', 'waa_contrib')
+        self.waa_multiplier = self.config.getfloat('Settings', 'waa_multiplier')
         self.savings_pct = self.config.getint('Settings', 'savings_pct') / 100
         self.giving_goal_pct = self.config.getint('Settings', 'giving_goal_pct') / 100
         self.giving_holdback_pct = self.config.getint('Settings', 'giving_holdback_pct') / 100

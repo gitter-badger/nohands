@@ -97,6 +97,10 @@ class Earner(Base):
     def net_annual(self):
         return self.pay_period.checks_year * self.net_paycheck
 
+    @hybrid_property
+    def net_monthly(self):
+        return self.net_annual / C.MPY
+
     # Pretty print
     def __str__(self):
         return '<Earner: "{}">'.format(self.name)

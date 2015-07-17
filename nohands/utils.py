@@ -69,7 +69,7 @@ def present_table(title: str, rows: list, totals: ListOrFalse=False) -> bool:
             lens.append(len(max([x[i] for x in rows] + [headers[i]], key=lambda x: len(str(x)))))
 
         # Set minimum length
-        minimum_length = 9
+        minimum_length = 10
         for i, l in enumerate(lens):
             if l < minimum_length:
                 lens[i] = minimum_length
@@ -93,7 +93,8 @@ def present_table(title: str, rows: list, totals: ListOrFalse=False) -> bool:
         top = DR1 + H1 + top + H1 + DL1
         total_len = len(top)
         padding = total_len - 4
-        title = "{:^{padding}}".format(title, padding=padding)
+        title = '\033[1m' + title + '\033[0m'
+        title = "{:^{padding}}".format(title, padding=padding + 8)  # <-- extra pad b/c of ansi esc chars
         title = V1 + S + title + S + V1
         bottom = "{}{}{}".format(H1, UH1, H1)
         bottom = bottom.join([H1 * n for n in lens])

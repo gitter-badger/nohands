@@ -37,25 +37,70 @@ class Accountant(object):
 
         # TODO: It should be possible to use a hybrid expression to achieve these.
         #   but I haven't been able to figure it out yet.
-        self.total_monthly_expenses = 0
+        self.total_expenses_monthly = 0
         for e in self.expenses:
-            self.total_monthly_expenses += e.monthly_amount
+            self.total_expenses_monthly += e.monthly_amount
 
-        self.total_annual_expenses = 0
+        self.total_expenses_annual = 0
         for e in self.expenses:
-            self.total_annual_expenses += e.annual_amount
+            self.total_expenses_annual += e.annual_amount
 
         self.total_gross_annual = 0
         for e in self.earners:
             self.total_gross_annual += e.gross_annual
 
-        self.total_ministry_annual = 0
+        # MINISTRY:
+        self.total_aux_annual = 0
         for e in self.ministries:
-            self.total_ministry_annual += e.annual_amount
+            self.total_aux_annual += e.annual_amount
+        self.total_aux_monthly = 0
+        for e in self.ministries:
+            self.total_aux_monthly += e.monthly_amount
+        self.total_aux_pct = 0
+        self.crunch_giving_numbers()
+        self.fst_pct = C.giving_goal_pct - self.total_aux_pct
+        self.fst_annual = self.total_gross_annual * self.fst_pct
+        self.fst_monthly = self.fst_annual / C.MPY
+        self.hb_amount = C.giving_holdback_pct * self.fst_monthly
+        self.hb_monthly = self.fst_monthly - self.hb_amount
+        self.hb_total = self.hb_amount * C.MPY
+        self.total_ministry_pct = self.total_aux_pct + self.fst_pct
+        self.total_ministry_annual = self.total_aux_annual + self.fst_annual
+        self.total_ministry_monthly = self.total_aux_monthly + self.fst_monthly
 
-        self.total_ministry_monthly = 0
-        for e in self.ministries:
-            self.total_ministry_monthly += e.monthly_amount
+        self.total_net_annual_income = 0
+        for e in self.earners:
+            self.total_net_annual_income += e.net_annual
+
+        # SAVINGS:
+        self.annual_savings = C.savings_pct * self.total_net_annual_income
+        self.monthly_savings = self.annual_savings / C.MPY
+
+        # WAA:
+        # waa_subtotal is effectively all bills, including giving (but not the holdback).
+        self.waa_subtotal = self.total_expenses_monthly + self.total_ministry_monthly - self.hb_amount
+        self.waa_total_monthly = self.waa_subtotal * C.waa_multiplier
+        self.waa_total_annual = self.waa_total_monthly * C.MPY
+        print(dollars_(self.waa_total_monthly))
+        print(dollars_(self.waa_total_annual))
+        self.crunch_deposits()
+
+    def crunch_deposits(self):
+        actual_earners = []
+        for e in self.earners:
+            if e.gross_annual > 0:
+                earner_container = [e]
+                actual_earners.append(earner_container)
+
+                waa_contrib_monthly = self.waa_total_monthly * e.percentage
+                waa_contrib_annual = waa_contrib_monthly * C.MPY
+                waa_contrib_check = waa_contrib_annual / e.pay_period.checks_year
+                print(percent_(e.percentage))
+                print(dollars_(waa_contrib_monthly))
+                print(dollars_(waa_contrib_check))
+
+    def report_deposits(self):
+        pass
 
     def report_earners(self):
         rows = [
@@ -92,23 +137,25 @@ class Accountant(object):
             ]
             rows.append(values)
         present_table('Expenses', rows)
-        print('Total Annual Expenses:  {}'.format(dollars_(self.total_annual_expenses)))
-        print('Total Monthly Expenses:  {}'.format(dollars_(self.total_monthly_expenses)))
+        print('Total Annual Expenses:  {}'.format(dollars_(self.total_expenses_annual)))
+        print('Total Monthly Expenses:  {}'.format(dollars_(self.total_expenses_monthly)))
 
-    def report_giving(self):
-        headers = ['Name', 'Percentage', 'Term', 'Annual', 'Monthly']
-        aux_rows = [
-            headers,
-        ]
-        pct_tally = 0
-
-        # Auxiliary Ministries:
+    def crunch_giving_numbers(self):
         for m in self.ministries:
             percentage = m.annual_amount / self.total_gross_annual
-            pct_tally += percentage
+            self.total_aux_pct += percentage
+
+    def report_giving(self):
+        common_headers = ['Name', 'Percentage', 'Term', 'Annual', 'Monthly']
+
+        # Auxiliary Ministries:
+        aux_rows = [
+            common_headers,
+        ]
+        for m in self.ministries:
             values = [
                 m.name,
-                percent_(percentage),
+                percent_(m.annual_amount / self.total_gross_annual),
                 str(m.term.name),
                 dollars_(m.annual_amount),
                 dollars_(m.monthly_amount),
@@ -116,33 +163,41 @@ class Accountant(object):
             aux_rows.append(values)
         aux_totals = [
             'Subtotals',
-            percent_(pct_tally),
-            '',
-            dollars_(self.total_ministry_annual),
-            dollars_(self.total_ministry_monthly),
+            percent_(self.total_aux_pct),
+            '',  # Blank
+            dollars_(self.total_aux_annual),
+            dollars_(self.total_aux_monthly),
         ]
         present_table('Auxiliary Ministries', aux_rows, aux_totals)
 
         # FST:
-        fst_pct = C.giving_goal_pct - pct_tally
-        fst_annual = self.total_gross_annual * fst_pct
-        fst_monthly = fst_annual / C.MPY
         fst_row = ['FST',
-                   percent_(fst_pct),
+                   percent_(self.fst_pct),
                    C.fst_term,
-                   dollars_(fst_annual),
-                   dollars_(fst_monthly),
+                   dollars_(self.fst_annual),
+                   dollars_(self.fst_monthly),
                    ]
         fst_rows = [
-            headers,
+            common_headers,
             fst_row
         ]
         present_table('FST', fst_rows)
 
+        # FST Holdback:
+        hb_rows = [
+            ['Percentage', 'Amount', 'Monthly Check', 'Year-end Check'],
+            [percent_(C.giving_holdback_pct),
+             dollars_(self.hb_amount),
+             dollars_(self.hb_monthly),
+             dollars_(self.hb_total),
+             ],
+        ]
+        present_table('FST Holdback', hb_rows)
+
         # Ministry Summary:
         aux_totals[0] = 'Aux'
         rows = [
-            headers,
+            common_headers,
             aux_totals,
             fst_row,
         ]
@@ -150,11 +205,20 @@ class Accountant(object):
             r.pop(2)  # Drop the "Term" column
         grand_totals = [
             'Total',
-            percent_(pct_tally + fst_pct),
-            dollars_(self.total_ministry_annual + fst_annual),
-            dollars_(self.total_ministry_monthly + fst_monthly),
+            percent_(self.total_ministry_pct),
+            dollars_(self.total_ministry_annual),
+            dollars_(self.total_ministry_monthly),
         ]
         present_table('Ministry Summary', rows, grand_totals)
+
+    def report_savings(self):
+        rows = [
+            ['% off Net', 'Annual', 'Monthly'],
+            [percent_(C.savings_pct),
+             dollars_(self.annual_savings),
+             dollars_(self.monthly_savings)],
+        ]
+        present_table('Savings', rows)
 
 
 # vim:fileencoding=utf-8
