@@ -58,7 +58,7 @@ class GlobalConfig:
             print("Config file missing. Initializing new, blank one.")
             with open(self.config_file, "w") as fp:
                 fp.write("[Settings]\n" +
-                         "waa_contrib = 1.2\n" +
+                         "waa_multiplier = 1.2\n" +
                          "savings_pct = 14\n" +
                          "giving_goal_pct = 10\n" +
                          "giving_holdback_pct = 10\n" +
