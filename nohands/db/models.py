@@ -170,6 +170,10 @@ class CreditAccount(Base):
     time_period_id = Column(Integer, ForeignKey('time_periods.id'))
     has_auto_pay = Column(Boolean)
     auto_pay_enabled = Column(Boolean)
+    credit_limit = Column(Integer)
+    balance = Column(Integer)
+    minimum_payment = Column(Integer)
+    apr_pct = Column(Integer)
 
     time_period = relationship('TimePeriod', backref=p('credit_account'))
 
