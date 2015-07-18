@@ -19,6 +19,9 @@ requirements = [
     'sqlalchemy',
     'inflect',
     'typing',
+    'pyxdg',
+    'psycopg2',
+    'alembic',
 ]
 
 test_requirements = [
