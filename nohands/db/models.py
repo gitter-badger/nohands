@@ -115,7 +115,7 @@ class Expense(Base):
     # # noinspection PyMethodParameters
     # @annual_amount.expression
     # def annual_amount(cls):
-    #     return select([sum(cls.amount * TimePeriod.occurrence_year)]).\
+    #     return select([sum(cls.amount * TimePeriod.occurrence_per_year)]).\
     #         where(cls.time_period_id == TimePeriod.id).\
     #         label('annual_amount')
 
@@ -145,7 +145,7 @@ class Ministry(Base):
 
     @hybrid_property
     def annual_amount(self):
-        return self.amount * self.time_period.occurrence_year
+        return self.amount * self.time_period.occurrence_per_year
 
     @hybrid_property
     def monthly_amount(self):
