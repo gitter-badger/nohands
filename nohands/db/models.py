@@ -13,7 +13,7 @@ nohands.db.models:
 """
 
 import inflect
-from sqlalchemy import Column, ForeignKey, func, select
+from sqlalchemy import Column, ForeignKey, func
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, String, Boolean
@@ -22,7 +22,7 @@ from nohands.config import GlobalConfig
 from nohands.db import Base, Session
 
 
-__all__ = ['PayPeriod', 'Term', 'Earner', 'Expense', 'Ministry', 'CreditAccount']
+__all__ = ['TimePeriod', 'Earner', 'Expense', 'Ministry', 'CreditAccount']
 
 C = GlobalConfig()
 
@@ -30,38 +30,21 @@ Inflector = inflect.engine()
 p = Inflector.plural
 
 
-class PayPeriod(Base):
-    """ PayPeriod """
-    __tablename__ = p('pay_period')
+class TimePeriod(Base):
+    """ TimePeriod """
+    __tablename__ = p('time_period')
 
     # column definitions
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
-    checks_year = Column(Integer)
+    occurrence_per_year = Column(Integer)
 
     # Pretty print
     def __str__(self):
-        return '<PayPeriod: "{}">'.format(self.name)
+        return '<TimePeriod: "{}">'.format(self.name)
 
     def __repr__(self):
-        return '<PayPeriod: "{}">'.format(self.name)
-
-
-class Term(Base):
-    """ Term """
-    __tablename__ = p('term')
-
-    # column definitions
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, nullable=False, unique=True)
-    occurrence_year = Column(Integer)
-
-    # Pretty print
-    def __str__(self):
-        return '<Term: "{}">'.format(self.name)
-
-    def __repr__(self):
-        return '<Term: "{}">'.format(self.name)
+        return '<TimePeriod: "{}">'.format(self.name)
 
 
 class Earner(Base):
@@ -72,10 +55,10 @@ class Earner(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
     gross_annual = Column(Integer)
-    pay_period_id = Column(Integer, ForeignKey('pay_periods.id'))
+    time_period_id = Column(Integer, ForeignKey('time_periods.id'))
     net_paycheck = Column(Integer)
 
-    pay_period = relationship('PayPeriod', backref=p('earner'))
+    time_period = relationship('TimePeriod', backref=p('earner'))
 
     @hybrid_property
     def percentage(self):
@@ -87,7 +70,7 @@ class Earner(Base):
 
     @hybrid_property
     def gross_paycheck(self):
-        return self.gross_annual / self.pay_period.checks_year
+        return self.gross_annual / self.time_period.occurrence_per_year
 
     @hybrid_property
     def waa_contrib(self):
@@ -95,7 +78,7 @@ class Earner(Base):
 
     @hybrid_property
     def net_annual(self):
-        return self.pay_period.checks_year * self.net_paycheck
+        return self.time_period.occurrence_per_year * self.net_paycheck
 
     @hybrid_property
     def net_monthly(self):
@@ -117,23 +100,23 @@ class Expense(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
     url = Column(String)
-    term_id = Column(Integer, ForeignKey('terms.id'))
+    time_period_id = Column(Integer, ForeignKey('time_periods.id'))
     has_auto_pay = Column(Boolean)
     auto_pay_enabled = Column(Boolean)
     amount = Column(Integer)
 
-    term = relationship('Term', backref=p('expense'))
+    time_period = relationship('TimePeriod', backref=p('expense'))
 
     @hybrid_property
     def annual_amount(self):
-        return self.amount * self.term.occurrence_year
+        return self.amount * self.time_period.occurrence_per_year
 
     # TODO: Find a way to make this work.
     # # noinspection PyMethodParameters
     # @annual_amount.expression
     # def annual_amount(cls):
-    #     return select([sum(cls.amount * Term.occurrence_year)]).\
-    #         where(cls.term_id == Term.id).\
+    #     return select([sum(cls.amount * TimePeriod.occurrence_year)]).\
+    #         where(cls.time_period_id == TimePeriod.id).\
     #         label('annual_amount')
 
     @hybrid_property
@@ -155,14 +138,14 @@ class Ministry(Base):
     # column definitions
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
-    term_id = Column(Integer, ForeignKey('terms.id'))
+    time_period_id = Column(Integer, ForeignKey('time_periods.id'))
     amount = Column(Integer)
 
-    term = relationship('Term', backref=p('ministry'))
+    time_period = relationship('TimePeriod', backref=p('ministry'))
 
     @hybrid_property
     def annual_amount(self):
-        return self.amount * self.term.occurrence_year
+        return self.amount * self.time_period.occurrence_year
 
     @hybrid_property
     def monthly_amount(self):
@@ -184,11 +167,11 @@ class CreditAccount(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
     url = Column(String)
-    term_id = Column(Integer, ForeignKey('terms.id'))
+    time_period_id = Column(Integer, ForeignKey('time_periods.id'))
     has_auto_pay = Column(Boolean)
     auto_pay_enabled = Column(Boolean)
 
-    term = relationship('Term', backref=p('credit_account'))
+    time_period = relationship('TimePeriod', backref=p('credit_account'))
 
     # Pretty print
     def __str__(self):

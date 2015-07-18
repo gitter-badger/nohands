@@ -33,6 +33,6 @@ Engine = create_engine(C.db_cx
                        )
 
 Session.configure(bind=Engine)
-Base.metadata.create_all(Engine)
+# Base.metadata.create_all(Engine)
 
 # vim:fileencoding=utf-8

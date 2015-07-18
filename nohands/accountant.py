@@ -32,8 +32,7 @@ class Accountant(object):
             .filter(Earner.gross_annual > 0).one().earner_count
         self.expenses = Session.query(Expense).all()
         self.ministries = Session.query(Ministry).all()
-        self.pay_periods = Session.query(PayPeriod).all()
-        self.terms = Session.query(Term).all()
+        self.time_periods = Session.query(TimePeriod).all()
 
         # TODO: It should be possible to use a hybrid expression to achieve these.
         #   but I haven't been able to figure it out yet.
@@ -94,7 +93,7 @@ class Accountant(object):
 
                 waa_contrib_monthly = self.waa_total_monthly * e.percentage
                 waa_contrib_annual = waa_contrib_monthly * C.MPY
-                waa_contrib_check = waa_contrib_annual / e.pay_period.checks_year
+                waa_contrib_check = waa_contrib_annual / e.time_period.occurrence_per_year
                 print(percent_(e.percentage))
                 print(dollars_(waa_contrib_monthly))
                 print(dollars_(waa_contrib_check))
@@ -112,7 +111,7 @@ class Accountant(object):
                 e.name,
                 dollars_(e.gross_annual),
                 percent_(e.percentage),
-                str(e.pay_period.checks_year),
+                str(e.time_period.occurrence_per_year),
                 dollars_(e.gross_paycheck),
                 str(e.waa_contrib),
                 dollars_(e.net_paycheck),
@@ -129,7 +128,7 @@ class Accountant(object):
             values = [
                 e.name,
                 str(e.url),
-                str(e.term.name),
+                str(e.time_period.name),
                 str(e.has_auto_pay),
                 str(e.auto_pay_enabled),
                 dollars_(e.monthly_amount),
@@ -156,7 +155,7 @@ class Accountant(object):
             values = [
                 m.name,
                 percent_(m.annual_amount / self.total_gross_annual),
-                str(m.term.name),
+                str(m.time_period.name),
                 dollars_(m.annual_amount),
                 dollars_(m.monthly_amount),
             ]
@@ -173,7 +172,7 @@ class Accountant(object):
         # FST:
         fst_row = ['FST',
                    percent_(self.fst_pct),
-                   C.fst_term,
+                   C.fst_period,
                    dollars_(self.fst_annual),
                    dollars_(self.fst_monthly),
                    ]

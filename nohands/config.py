@@ -62,7 +62,7 @@ class GlobalConfig:
                          "savings_pct = 14\n" +
                          "giving_goal_pct = 10\n" +
                          "giving_holdback_pct = 10\n" +
-                         "fst_term = Monthly\n" +
+                         "fst_period = Monthly\n" +
                          "\n"
                          "[Database]\n" +
                          "driver = postgresql+psycopg2\n" +
@@ -83,7 +83,7 @@ class GlobalConfig:
         self.savings_pct = self.config.getint('Settings', 'savings_pct') / 100
         self.giving_goal_pct = self.config.getint('Settings', 'giving_goal_pct') / 100
         self.giving_holdback_pct = self.config.getint('Settings', 'giving_holdback_pct') / 100
-        self.fst_term = self.config.get('Settings', 'fst_term')
+        self.fst_period = self.config.get('Settings', 'fst_period')
         # [Database]
         driver = self.config.get('Database', 'driver')
         username = self.config.get('Database', 'username')

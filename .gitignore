@@ -112,3 +112,4 @@ docopt_test.py
 go
 .config
 .data
+alembic.ini
