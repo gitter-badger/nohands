@@ -41,8 +41,33 @@ class Money(object):
         monthly = dollars_(self.value / 12)
         return '<Money: value={} annual={} (monthly={})>'.format(self.value, annual, monthly)
 
+    # Implement common integer operations. For uncommon, just use int().
     def __int__(self):
-        return int(self.value)
+        return self.value
+
+    def __add__(self, other):
+        return self.value + other
+
+    def __sub__(self, other):
+        return self.value - other
+
+    def __mul__(self, other):
+        return self.value * other
+
+    def __truediv__(self, other):
+        return self.value / other
+
+    def __radd__(self, other):
+        return other + self.value
+
+    def __rsub__(self, other):
+        return other - self.value
+
+    def __rmul__(self, other):
+        return other * self.value
+
+    def __rtruediv__(self, other):
+        return other / self.value
 
 
 # vim:fileencoding=utf-8

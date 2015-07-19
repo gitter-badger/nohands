@@ -56,12 +56,12 @@ class Accountant(object):
         self.total_aux_pct = 0
         self.crunch_giving_numbers()
         self.fst_pct = C.giving_goal_pct - self.total_aux_pct
-        self.total_fst = Money(int(total_gross_annual) * self.fst_pct)
+        self.total_fst = Money(total_gross_annual * self.fst_pct)
         self.hb_amount = C.giving_holdback_pct * self.total_fst.monthly
         self.hb_monthly = self.total_fst.monthly - self.hb_amount
         self.hb_total = self.hb_amount * C.MPY
         self.total_ministry_pct = self.total_aux_pct + self.fst_pct
-        self.total_ministry = Money(int(self.total_aux.annual) + int(self.total_fst.annual))
+        self.total_ministry = Money(self.total_aux.annual + self.total_fst.annual)
 
         total_net_annual = 0
         for e in self.earners:
@@ -69,14 +69,19 @@ class Accountant(object):
         self.total_net = Money(total_net_annual)
 
         # SAVINGS:
-        self.total_savings = Money(C.savings_pct * int(self.total_net))
+        self.total_savings = Money(C.savings_pct * self.total_net)
 
         # WAA:
         # waa_subtotal is effectively all bills, including giving (but not the holdback).
-        self.waa_subtotal = self.total_expenses.monthly + self.total_ministry.monthly - self.hb_amount
+        ministry_subtotal = self.total_ministry.monthly - self.hb_amount
+        self.waa_subtotal = self.total_expenses.monthly + ministry_subtotal
         self.waa_total = Money(self.waa_subtotal * C.waa_multiplier * C.MPY)
-        print(dollars_(self.waa_total.monthly))
-        print(dollars_(self.waa_total.annual))
+        print('total_ministry.monthly  =  ' + dollars_(self.total_ministry.monthly))
+        print('total_expenses.monthly  =  ' + dollars_(self.total_expenses.monthly))
+        print('ministry_subtotal  =  ' + dollars_(ministry_subtotal))
+        print('waa_subtotal  =  ' + dollars_(self.waa_subtotal))
+        print('waa_total.monthly  =  ' + dollars_(self.waa_total.monthly))
+        print('waa_total.annual  =  ' + dollars_(self.waa_total.annual))
         self.crunch_deposits()
 
     def crunch_deposits(self):
