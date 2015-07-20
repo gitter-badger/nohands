@@ -63,7 +63,12 @@ class GlobalConfig:
                          "giving_goal_pct = 10\n" +
                          "giving_holdback_pct = 10\n" +
                          "fst_period = Monthly\n" +
-                         "\n"
+                         "\n" +
+                         "# Rainy Day Goal:" +
+                         "#   default = (1 year | 12 months | 52 weeks) of WAA" +
+                         "rainyday_unit = 12" +
+                         "rainyday_value = months" +
+                         "\n" +
                          "[Database]\n" +
                          "driver = postgresql+psycopg2\n" +
                          "username = nohands\n" +
@@ -84,6 +89,8 @@ class GlobalConfig:
         self.giving_goal_pct = self.config.getint('Settings', 'giving_goal_pct') / 100
         self.giving_holdback_pct = self.config.getint('Settings', 'giving_holdback_pct') / 100
         self.fst_period = self.config.get('Settings', 'fst_period')
+        self.rainyday_unit = self.config.get('Settings', 'rainyday_unit')
+        self.rainyday_value = self.config.get('Settings', 'rainyday_value')
         # [Database]
         driver = self.config.get('Database', 'driver')
         username = self.config.get('Database', 'username')
