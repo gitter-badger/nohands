@@ -12,6 +12,7 @@ nohands.accountant
     This is the main worker.
 """
 from sqlalchemy import func
+from math import ceil
 
 from nohands.config import GlobalConfig
 from nohands.db import Session
@@ -21,6 +22,8 @@ from nohands.money import Money
 
 
 C = GlobalConfig()
+
+# TODO: ATM, I have *no* error trapping/handling!
 
 
 class Accountant(object):
@@ -82,28 +85,81 @@ class Accountant(object):
         print('waa_subtotal  =  ' + dollars_(self.waa_subtotal))
         print('waa_total.monthly  =  ' + dollars_(self.waa_total.monthly))
         print('waa_total.annual  =  ' + dollars_(self.waa_total.annual))
+        self.actual_earners = []
+        self.actual_waa_total = Money()
         self.crunch_deposits()
+        print('actual_waa_total.annual  =  ' + dollars_(self.actual_waa_total.annual))
+        print('total_savings  =  ' + dollars_(self.total_savings.annual))
 
     def crunch_deposits(self):
-        actual_earners = []
+        actual_waa_total_tally = 0
         for e in self.earners:
             if e.gross_annual > 0:
-                earner_container = [e]
-                actual_earners.append(earner_container)
+                earner_container = {'earner': e}
 
-                waa_contrib = Money(self.waa_total.monthly * e.percentage * C.MPY)
-                waa_contrib_check = getattr(waa_contrib, e.time_period.name)
-                print(percent_(e.percentage))
-                print(dollars_(waa_contrib.monthly))
-                print(dollars_(waa_contrib_check))
+                # - WAA -
+                waa_contrib = Money(self.waa_total * e.percentage)
+                earner_container['waa_contrib'] = waa_contrib
+
+                waa_contrib_check_raw = getattr(waa_contrib, e.time_period.name)
+                earner_container['waa_contrib_check_raw'] = waa_contrib_check_raw
+
+                # NOTE: This value loses precision
+                # TODO: Make the rounding facter configurable, eg. "Nearest [1, 10, 100, 25]"
+                round_to_next = 100  # Tip: for sane value, this should evenly divide into 100.
+                facter = round_to_next * 100
+                waa_contrib_check_ceil = ceil(waa_contrib_check_raw / facter)
+                waa_contrib_check_rounded = int(waa_contrib_check_ceil * facter)
+                earner_container['waa_contrib_check_rounded'] = waa_contrib_check_rounded
+                waa_contrib_rounded = Money(waa_contrib_check_rounded * e.time_period.occurrence_per_year)
+
+                # - Savings -
+                savings_contrib = Money(self.total_savings * e.percentage)
+                earner_container['savings_contrib'] = getattr(savings_contrib, e.time_period.name)
+
+                # - FFG -
+                ffg_contrib = Money(e.net_annual - waa_contrib_rounded - savings_contrib)
+                earner_container['ffg_contrib'] = getattr(ffg_contrib, e.time_period.name)
+
+                # Commit
+                self.actual_earners.append(earner_container)
+
+                waa_contrib_check_rounded_annual = (waa_contrib_check_rounded
+                                                    *
+                                                    e.time_period.occurrence_per_year)
+                actual_waa_total_tally += waa_contrib_check_rounded_annual
+
+        self.actual_waa_total.value = actual_waa_total_tally
+
+        check_tally = 0
+        for x in self.actual_earners:
+            check_tally += x['waa_contrib'].annual
+
+        if self.waa_total.annual != check_tally:
+            raise AssertionError("Tally-check in crunch_deposits() failed.")
+
+        return True
 
     def report_deposits(self):
-        pass
+        rows = [
+            ['Name', 'WAA (raw)', 'WAA (rounded)', 'Savings', 'FFG']
+        ]
+        for e in self.actual_earners:
+            values = [
+                e['earner'].name,
+                dollars_(e['waa_contrib_check_raw']),
+                dollars_(e['waa_contrib_check_rounded']),
+                dollars_(e['savings_contrib']),
+                dollars_(e['ffg_contrib']),
+            ]
+            rows.append(values)
+        present_table('Deposit Summary', rows)
 
     def report_earners(self):
         rows = [
             ['Name', 'Gross Annual', 'Percentage', 'Checks/Year', 'Gross Paycheck',
-             'WAA Contrib', 'Net Paycheck', 'Net Income']
+             # 'WAA Contrib',
+             'Net Paycheck', 'Net Income']
         ]
         for e in self.earners:
             values = [
@@ -112,7 +168,7 @@ class Accountant(object):
                 percent_(e.percentage),
                 str(e.time_period.occurrence_per_year),
                 dollars_(e.gross_paycheck),
-                str(e.waa_contrib),
+                # str(e.waa_contrib),
                 dollars_(e.net_paycheck),
                 dollars_(e.net_annual),
             ]
