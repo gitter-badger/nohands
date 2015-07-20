@@ -79,20 +79,14 @@ class Accountant(object):
         ministry_subtotal = self.total_ministry.monthly - self.hb_amount
         self.waa_subtotal = self.total_expenses.monthly + ministry_subtotal
         self.waa_total = Money(self.waa_subtotal * C.waa_multiplier * C.MPY)
-        print('total_ministry.monthly  =  ' + dollars_(self.total_ministry.monthly))
-        print('total_expenses.monthly  =  ' + dollars_(self.total_expenses.monthly))
-        print('ministry_subtotal  =  ' + dollars_(ministry_subtotal))
-        print('waa_subtotal  =  ' + dollars_(self.waa_subtotal))
-        print('waa_total.monthly  =  ' + dollars_(self.waa_total.monthly))
-        print('waa_total.annual  =  ' + dollars_(self.waa_total.annual))
         self.actual_earners = []
         self.actual_waa_total = Money()
+        self.ffg_total = Money()
         self.crunch_deposits()
-        print('actual_waa_total.annual  =  ' + dollars_(self.actual_waa_total.annual))
-        print('total_savings  =  ' + dollars_(self.total_savings.annual))
 
     def crunch_deposits(self):
         actual_waa_total_tally = 0
+        ffg_total_tally = 0
         for e in self.earners:
             if e.gross_annual > 0:
                 earner_container = {'earner': e}
@@ -114,12 +108,12 @@ class Accountant(object):
                 waa_contrib_rounded = Money(waa_contrib_check_rounded * e.time_period.occurrence_per_year)
 
                 # - Savings -
-                savings_contrib = Money(self.total_savings * e.percentage)
-                earner_container['savings_contrib'] = getattr(savings_contrib, e.time_period.name)
+                savings_earner_total = Money(self.total_savings * e.percentage)
+                earner_container['savings_earner_total'] = savings_earner_total
 
                 # - FFG -
-                ffg_contrib = Money(e.net_annual - waa_contrib_rounded - savings_contrib)
-                earner_container['ffg_contrib'] = getattr(ffg_contrib, e.time_period.name)
+                ffg_earner_total = Money(e.net_annual - waa_contrib_rounded - savings_earner_total)
+                earner_container['ffg_earner_total'] = ffg_earner_total
 
                 # Commit
                 self.actual_earners.append(earner_container)
@@ -128,8 +122,10 @@ class Accountant(object):
                                                     *
                                                     e.time_period.occurrence_per_year)
                 actual_waa_total_tally += waa_contrib_check_rounded_annual
+                ffg_total_tally += ffg_earner_total.value
 
         self.actual_waa_total.value = actual_waa_total_tally
+        self.ffg_total.value = ffg_total_tally
 
         check_tally = 0
         for x in self.actual_earners:
@@ -145,12 +141,13 @@ class Accountant(object):
             ['Name', 'WAA (raw)', 'WAA (rounded)', 'Savings', 'FFG']
         ]
         for e in self.actual_earners:
+            period_name = e['earner'].time_period.name
             values = [
                 e['earner'].name,
                 dollars_(e['waa_contrib_check_raw']),
                 dollars_(e['waa_contrib_check_rounded']),
-                dollars_(e['savings_contrib']),
-                dollars_(e['ffg_contrib']),
+                dollars_(getattr(e['savings_earner_total'], period_name)),
+                dollars_(getattr(e['ffg_earner_total'], period_name)),
             ]
             rows.append(values)
         present_table('Deposit Summary', rows)
@@ -273,6 +270,19 @@ class Accountant(object):
              dollars_(self.total_savings.monthly)],
         ]
         present_table('Savings', rows)
+
+    def report_ffg(self):
+        rows = [
+            ['', 'Week', 'Month', 'Year']
+        ]
+        values = [
+            'Total',
+            dollars_(self.ffg_total.weekly),
+            dollars_(self.ffg_total.monthly),
+            dollars_(self.ffg_total.annual),
+        ]
+        rows.append(values)
+        present_table('FFG Summary', rows)
 
 
 # vim:fileencoding=utf-8

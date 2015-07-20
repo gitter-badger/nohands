@@ -24,6 +24,7 @@ def main():
     a.report_giving()
     a.report_savings()
     a.report_deposits()
+    a.report_ffg()
 
 if __name__ == '__main__':
     main()
