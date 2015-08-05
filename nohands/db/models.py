@@ -18,8 +18,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, String, Boolean
 
-from nohands.config import GlobalConfig
-from nohands.db import Base, Session
+from ..config import GlobalConfig
+from ..db import Base, Session
 
 
 __all__ = ['TimePeriod', 'Earner', 'Expense', 'Ministry', 'CreditAccount']

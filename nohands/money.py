@@ -12,9 +12,9 @@ nohands.money
     A dollar amount that can be expressed in different periods of time.
 """
 
-from nohands.db import Session
-from nohands.db.models import *
-from nohands.utils import dollars_
+from .db import Session
+from .db.models import *
+from .utils import dollars_
 
 
 class Money(object):

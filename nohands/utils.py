@@ -14,7 +14,7 @@ nohands.utils
 
 from typing import TypeVar
 
-from nohands.box import *
+from .box import *
 
 AnyNum = TypeVar('AnyNum', int, float)
 ListOrFalse = TypeVar('ListOrFalse', list, bool)

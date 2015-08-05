@@ -14,11 +14,11 @@ nohands.accountant
 from sqlalchemy import func
 from math import ceil
 
-from nohands.config import GlobalConfig
-from nohands.db import Session
-from nohands.db.models import *
-from nohands.utils import percent_, dollars_, present_table
-from nohands.money import Money
+from .config import GlobalConfig
+from .db import Session
+from .db.models import *
+from .utils import percent_, dollars_, present_table
+from .money import Money
 
 
 C = GlobalConfig()
