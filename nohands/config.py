@@ -64,10 +64,10 @@ class GlobalConfig:
                          "giving_holdback_pct = 10\n" +
                          "fst_period = Monthly\n" +
                          "\n" +
-                         "# Rainy Day Goal:" +
-                         "#   default = (1 year | 12 months | 52 weeks) of WAA" +
-                         "rainyday_unit = 12" +
-                         "rainyday_value = months" +
+                         "# Rainy Day Goal:\n" +
+                         "#   default = (1 year | 12 months | 52 weeks) of WAA\n" +
+                         "rainyday_unit = 12\n" +
+                         "rainyday_value = months\n" +
                          "\n" +
                          "[Database]\n" +
                          "driver = postgresql+psycopg2\n" +
